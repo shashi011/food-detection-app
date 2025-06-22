@@ -133,6 +133,7 @@ dmypy.json
 uploads/
 results/
 runs/
+!runs/detect/yolov8n_food101/weights/best.pt
 
 # Model files (if they're large)
 *.pt
