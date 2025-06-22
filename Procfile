@@ -1,0 +1,1 @@
+web: gunicorn food_detection_app:app --bind 0.0.0.0:$PORT 
