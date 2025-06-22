@@ -15,6 +15,7 @@ from PIL import Image
 import io
 import json
 from datetime import datetime
+import torch
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -30,6 +31,12 @@ FOOD_CLASSES = [
     "Apple Pie", "Chocolate", "French Fries", "Hotdog", "Nachos", 
     "Pizza", "onion_rings", "pancakes", "spring_rolls", "tacos"
 ]
+
+# Fix for PyTorch 2.7+ weights_only issue
+try:
+    torch.serialization.add_safe_globals(['ultralytics.nn.tasks.DetectionModel'])
+except:
+    pass
 
 # Load YOLO model
 try:
