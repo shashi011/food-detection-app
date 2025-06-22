@@ -16,6 +16,7 @@ import io
 import json
 from datetime import datetime
 import torch
+from ultralytics.nn.tasks import DetectionModel
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -34,7 +35,7 @@ FOOD_CLASSES = [
 
 # Fix for PyTorch 2.7+ weights_only issue
 try:
-    torch.serialization.add_safe_globals(['ultralytics.nn.tasks.DetectionModel'])
+    torch.serialization.add_safe_globals([DetectionModel])
 except:
     pass
 
