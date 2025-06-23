@@ -22,6 +22,10 @@ import torch.nn.modules.container
 from ultralytics.nn.modules.conv import Conv
 from ultralytics.nn.modules.block import C2f, SPPF
 from ultralytics.nn.modules.head import Detect
+import torch.nn.modules.conv
+import torch.nn.modules.batchnorm
+import torch.nn.modules.activation
+import torch.nn.modules.pooling
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -42,12 +46,21 @@ FOOD_CLASSES = [
 
 try:
     add_safe_globals([
-        torch.nn.modules.container.Sequential,  # 🔧 Needed for model deserialization
+        # Standard PyTorch modules
+        torch.nn.modules.container.Sequential,
+        torch.nn.modules.conv.Conv2d,
+        torch.nn.modules.batchnorm.BatchNorm2d,
+        torch.nn.modules.activation.ReLU,
+        torch.nn.modules.activation.SiLU,
+        torch.nn.modules.pooling.MaxPool2d,
+        torch.nn.modules.pooling.AdaptiveAvgPool2d,
+        
+        # Ultralytics modules
         DetectionModel,
-        Conv,  # 🔧 Added Conv module
-        C2f,   # 🔧 Added C2f block
-        SPPF,  # 🔧 Added SPPF block
-        Detect # 🔧 Added Detect head
+        Conv,
+        C2f,
+        SPPF,
+        Detect
     ])
 except Exception as e:
     print(f"⚠️ Failed to register safe globals: {e}")
