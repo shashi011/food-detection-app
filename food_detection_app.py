@@ -19,6 +19,9 @@ import torch
 from ultralytics.nn.tasks import DetectionModel
 from torch.serialization import add_safe_globals
 import torch.nn.modules.container
+from ultralytics.nn.modules.conv import Conv
+from ultralytics.nn.modules.block import C2f, SPPF
+from ultralytics.nn.modules.head import Detect
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -40,13 +43,14 @@ FOOD_CLASSES = [
 try:
     add_safe_globals([
         torch.nn.modules.container.Sequential,  # 🔧 Needed for model deserialization
-        DetectionModel
+        DetectionModel,
+        Conv,  # 🔧 Added Conv module
+        C2f,   # 🔧 Added C2f block
+        SPPF,  # 🔧 Added SPPF block
+        Detect # 🔧 Added Detect head
     ])
 except Exception as e:
-    import traceback
-    traceback.print_exc()  # 🔧 Optional: for better error debugging
-    print(f"❌ Error loading YOLO model: {e}")
-    model = None
+    print(f"⚠️ Failed to register safe globals: {e}")
 
 # Load YOLO model
 try:
