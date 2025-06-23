@@ -181,7 +181,10 @@ except Exception as e:
 
 # Load YOLO model
 try:
-    model = YOLO("runs/detect/yolov8n_food101/weights/best.pt")
+    # model = YOLO("runs/detect/yolov8n_food101/weights/best.pt")
+    model = YOLO("runs/detect/yolov8n_food101/weights/best.pt", task='detect')
+    model.model = torch.load("runs/detect/yolov8n_food101/weights/best.pt", weights_only=False)  # force full load
+
     print("✅ YOLO model loaded successfully!")
 except Exception as e:
     print(f"❌ Error loading YOLO model: {e}")
