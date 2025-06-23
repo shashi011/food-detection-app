@@ -22,6 +22,10 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['RESULTS_FOLDER'] = 'results'
 
+# Optimize for production
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['TEMPLATES_AUTO_RELOAD'] = False
+
 # Create directories if they don't exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['RESULTS_FOLDER'], exist_ok=True)
@@ -55,8 +59,14 @@ try:
         
         torch.load = patched_torch_load
         
-        # Now load the model normally
+        # Load model with memory optimization
+        print("🔄 Loading model with memory optimization...")
         model = YOLO(model_path)
+        
+        # Move model to CPU and optimize memory
+        if hasattr(model, 'model'):
+            model.model = model.model.cpu()
+            torch.cuda.empty_cache() if torch.cuda.is_available() else None
         
         # Restore original torch.load
         torch.load = original_torch_load
@@ -89,9 +99,15 @@ def process_image(image_path):
             print(f"❌ Image file not found: {image_path}")
             return {"error": f"Image file not found: {image_path}"}
         
-        # Run inference
+        # Run inference with timeout and memory optimization
         print("🔄 Running YOLO inference...")
-        results = model(image_path)
+        
+        # Ensure model is on CPU for memory efficiency
+        if hasattr(model, 'model'):
+            model.model = model.model.cpu()
+        
+        # Run inference with smaller image size to save memory
+        results = model(image_path, imgsz=640)  # Limit image size
         print(f"✅ Inference completed, got {len(results)} results")
         
         # Process results
@@ -119,6 +135,10 @@ def process_image(image_path):
                     })
             else:
                 print(f"📭 No boxes found in result {i+1}")
+        
+        # Clear memory
+        del results
+        torch.cuda.empty_cache() if torch.cuda.is_available() else None
         
         print(f"✅ Processing completed. Total detections: {len(detections)}")
         return {
@@ -166,6 +186,15 @@ def save_annotated_image(image_path, detections, output_path):
 def index():
     """Main page."""
     return render_template('index.html', food_classes=FOOD_CLASSES)
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint."""
+    return jsonify({
+        'status': 'healthy',
+        'model_loaded': model is not None,
+        'timestamp': datetime.now().isoformat()
+    })
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
