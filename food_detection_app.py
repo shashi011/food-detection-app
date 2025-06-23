@@ -16,26 +16,6 @@ import io
 import json
 from datetime import datetime
 import torch
-from ultralytics.nn.tasks import DetectionModel
-from torch.serialization import add_safe_globals
-import torch.nn.modules.container
-from ultralytics.nn.modules.conv import Conv
-from ultralytics.nn.modules.block import C2f, SPPF
-from ultralytics.nn.modules.head import Detect
-import torch.nn.modules.conv
-import torch.nn.modules.batchnorm
-import torch.nn.modules.activation
-import torch.nn.modules.pooling
-import torch.nn.modules.dropout
-import torch.nn.modules.normalization
-import torch.nn.modules.linear
-import torch.nn.modules.flatten
-import torch.nn.modules.upsampling
-import torch.nn.modules.padding
-import ultralytics.nn.tasks
-import ultralytics.nn.modules.conv
-import ultralytics.nn.modules.block
-import ultralytics.nn.modules.head
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -54,24 +34,40 @@ FOOD_CLASSES = [
 
 # Load YOLO model - Simple approach to bypass PyTorch 2.6+ restrictions
 try:
-    # Temporarily patch torch.load to use weights_only=False
-    original_torch_load = torch.load
+    print("🔄 Loading YOLO model...")
     
-    def patched_torch_load(*args, **kwargs):
-        kwargs['weights_only'] = False
-        return original_torch_load(*args, **kwargs)
-    
-    torch.load = patched_torch_load
-    
-    # Now load the model normally
-    model = YOLO("runs/detect/yolov8n_food101/weights/best.pt")
-    
-    # Restore original torch.load
-    torch.load = original_torch_load
-    
-    print("✅ YOLO model loaded successfully!")
+    # Check if model file exists
+    model_path = "runs/detect/yolov8n_food101/weights/best.pt"
+    if not os.path.exists(model_path):
+        print(f"❌ Model file not found at: {model_path}")
+        print(f"📁 Current working directory: {os.getcwd()}")
+        print(f"📁 Available files in runs/detect/yolov8n_food101/weights/: {os.listdir('runs/detect/yolov8n_food101/weights/') if os.path.exists('runs/detect/yolov8n_food101/weights/') else 'Directory not found'}")
+        model = None
+    else:
+        print(f"✅ Model file found at: {model_path}")
+        
+        # Temporarily patch torch.load to use weights_only=False
+        original_torch_load = torch.load
+        
+        def patched_torch_load(*args, **kwargs):
+            kwargs['weights_only'] = False
+            return original_torch_load(*args, **kwargs)
+        
+        torch.load = patched_torch_load
+        
+        # Now load the model normally
+        model = YOLO(model_path)
+        
+        # Restore original torch.load
+        torch.load = original_torch_load
+        
+        print("✅ YOLO model loaded successfully!")
+        
 except Exception as e:
     print(f"❌ Error loading YOLO model: {e}")
+    print(f"📁 Current working directory: {os.getcwd()}")
+    import traceback
+    traceback.print_exc()
     model = None
 
 def allowed_file(filename):
@@ -82,17 +78,29 @@ def allowed_file(filename):
 def process_image(image_path):
     """Process image with YOLO model and return results."""
     if model is None:
+        print("❌ Model is None - cannot process image")
         return {"error": "Model not loaded"}
     
     try:
+        print(f"🔄 Processing image: {image_path}")
+        
+        # Check if image file exists
+        if not os.path.exists(image_path):
+            print(f"❌ Image file not found: {image_path}")
+            return {"error": f"Image file not found: {image_path}"}
+        
         # Run inference
+        print("🔄 Running YOLO inference...")
         results = model(image_path)
+        print(f"✅ Inference completed, got {len(results)} results")
         
         # Process results
         detections = []
-        for result in results:
+        for i, result in enumerate(results):
+            print(f"🔄 Processing result {i+1}/{len(results)}")
             boxes = result.boxes
             if boxes is not None:
+                print(f"📦 Found {len(boxes)} boxes in result {i+1}")
                 for box in boxes:
                     # Get box coordinates
                     x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
@@ -109,7 +117,10 @@ def process_image(image_path):
                         'confidence': round(confidence * 100, 2),
                         'bbox': [int(x1), int(y1), int(x2), int(y2)]
                     })
+            else:
+                print(f"📭 No boxes found in result {i+1}")
         
+        print(f"✅ Processing completed. Total detections: {len(detections)}")
         return {
             'success': True,
             'detections': detections,
@@ -117,6 +128,9 @@ def process_image(image_path):
         }
         
     except Exception as e:
+        print(f"❌ Error in process_image: {e}")
+        import traceback
+        traceback.print_exc()
         return {"error": f"Error processing image: {str(e)}"}
 
 def save_annotated_image(image_path, detections, output_path):
