@@ -32,6 +32,10 @@ import torch.nn.modules.linear
 import torch.nn.modules.flatten
 import torch.nn.modules.upsampling
 import torch.nn.modules.padding
+import ultralytics.nn.tasks
+import ultralytics.nn.modules.conv
+import ultralytics.nn.modules.block
+import ultralytics.nn.modules.head
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -130,9 +134,6 @@ try:
         torch.nn.modules.normalization.CrossMapLRN2d,
         torch.nn.modules.normalization.GroupNorm,
         torch.nn.modules.normalization.LayerNorm,
-        torch.nn.modules.normalization.InstanceNorm1d,
-        torch.nn.modules.normalization.InstanceNorm2d,
-        torch.nn.modules.normalization.InstanceNorm3d,
         torch.nn.modules.normalization.LazyInstanceNorm1d,
         torch.nn.modules.normalization.LazyInstanceNorm2d,
         torch.nn.modules.normalization.LazyInstanceNorm3d,
@@ -163,7 +164,12 @@ try:
         torch.nn.modules.padding.ConstantPad2d,
         torch.nn.modules.padding.ConstantPad3d,
         
-        # Ultralytics modules
+        # Ultralytics modules - Comprehensive list
+        ultralytics.nn.tasks.DetectionModel,
+        ultralytics.nn.modules.conv.Conv,
+        ultralytics.nn.modules.block.C2f,
+        ultralytics.nn.modules.block.SPPF,
+        ultralytics.nn.modules.head.Detect,
         DetectionModel,
         Conv,
         C2f,
