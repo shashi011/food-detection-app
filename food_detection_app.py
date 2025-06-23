@@ -26,6 +26,12 @@ import torch.nn.modules.conv
 import torch.nn.modules.batchnorm
 import torch.nn.modules.activation
 import torch.nn.modules.pooling
+import torch.nn.modules.dropout
+import torch.nn.modules.normalization
+import torch.nn.modules.linear
+import torch.nn.modules.flatten
+import torch.nn.modules.upsampling
+import torch.nn.modules.padding
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -42,18 +48,120 @@ FOOD_CLASSES = [
     "Pizza", "onion_rings", "pancakes", "spring_rolls", "tacos"
 ]
 
-# 🔧 Fix for PyTorch 2.6+ weights_only issue
+# 🔧 Fix for PyTorch 2.6+ weights_only issue - Comprehensive list
 
 try:
     add_safe_globals([
-        # Standard PyTorch modules
+        # Container modules
         torch.nn.modules.container.Sequential,
+        torch.nn.modules.container.ModuleList,
+        torch.nn.modules.container.ModuleDict,
+        torch.nn.modules.container.ParameterList,
+        torch.nn.modules.container.ParameterDict,
+        
+        # Convolutional layers
+        torch.nn.modules.conv.Conv1d,
         torch.nn.modules.conv.Conv2d,
+        torch.nn.modules.conv.Conv3d,
+        torch.nn.modules.conv.ConvTranspose1d,
+        torch.nn.modules.conv.ConvTranspose2d,
+        torch.nn.modules.conv.ConvTranspose3d,
+        torch.nn.modules.conv.LazyConv1d,
+        torch.nn.modules.conv.LazyConv2d,
+        torch.nn.modules.conv.LazyConv3d,
+        torch.nn.modules.conv.LazyConvTranspose1d,
+        torch.nn.modules.conv.LazyConvTranspose2d,
+        torch.nn.modules.conv.LazyConvTranspose3d,
+        
+        # Batch normalization
+        torch.nn.modules.batchnorm.BatchNorm1d,
         torch.nn.modules.batchnorm.BatchNorm2d,
+        torch.nn.modules.batchnorm.BatchNorm3d,
+        torch.nn.modules.batchnorm.LazyBatchNorm1d,
+        torch.nn.modules.batchnorm.LazyBatchNorm2d,
+        torch.nn.modules.batchnorm.LazyBatchNorm3d,
+        
+        # Activation functions
         torch.nn.modules.activation.ReLU,
+        torch.nn.modules.activation.ReLU6,
+        torch.nn.modules.activation.LeakyReLU,
+        torch.nn.modules.activation.PReLU,
+        torch.nn.modules.activation.RReLU,
+        torch.nn.modules.activation.ELU,
+        torch.nn.modules.activation.CELU,
+        torch.nn.modules.activation.SELU,
+        torch.nn.modules.activation.GLU,
+        torch.nn.modules.activation.GELU,
         torch.nn.modules.activation.SiLU,
+        torch.nn.modules.activation.Hardswish,
+        torch.nn.modules.activation.Mish,
+        torch.nn.modules.activation.Sigmoid,
+        torch.nn.modules.activation.Tanh,
+        torch.nn.modules.activation.Softmax,
+        torch.nn.modules.activation.LogSoftmax,
+        
+        # Pooling layers
+        torch.nn.modules.pooling.MaxPool1d,
         torch.nn.modules.pooling.MaxPool2d,
+        torch.nn.modules.pooling.MaxPool3d,
+        torch.nn.modules.pooling.AvgPool1d,
+        torch.nn.modules.pooling.AvgPool2d,
+        torch.nn.modules.pooling.AvgPool3d,
+        torch.nn.modules.pooling.AdaptiveMaxPool1d,
+        torch.nn.modules.pooling.AdaptiveMaxPool2d,
+        torch.nn.modules.pooling.AdaptiveMaxPool3d,
+        torch.nn.modules.pooling.AdaptiveAvgPool1d,
         torch.nn.modules.pooling.AdaptiveAvgPool2d,
+        torch.nn.modules.pooling.AdaptiveAvgPool3d,
+        torch.nn.modules.pooling.FractionalMaxPool2d,
+        torch.nn.modules.pooling.FractionalMaxPool3d,
+        torch.nn.modules.pooling.LPPool1d,
+        torch.nn.modules.pooling.LPPool2d,
+        
+        # Dropout layers
+        torch.nn.modules.dropout.Dropout,
+        torch.nn.modules.dropout.Dropout1d,
+        torch.nn.modules.dropout.Dropout2d,
+        torch.nn.modules.dropout.Dropout3d,
+        torch.nn.modules.dropout.AlphaDropout,
+        
+        # Normalization layers
+        torch.nn.modules.normalization.LocalResponseNorm,
+        torch.nn.modules.normalization.CrossMapLRN2d,
+        torch.nn.modules.normalization.GroupNorm,
+        torch.nn.modules.normalization.LayerNorm,
+        torch.nn.modules.normalization.InstanceNorm1d,
+        torch.nn.modules.normalization.InstanceNorm2d,
+        torch.nn.modules.normalization.InstanceNorm3d,
+        torch.nn.modules.normalization.LazyInstanceNorm1d,
+        torch.nn.modules.normalization.LazyInstanceNorm2d,
+        torch.nn.modules.normalization.LazyInstanceNorm3d,
+        
+        # Linear layers
+        torch.nn.modules.linear.Linear,
+        torch.nn.modules.linear.Bilinear,
+        torch.nn.modules.linear.LazyLinear,
+        
+        # Flatten and reshape
+        torch.nn.modules.flatten.Flatten,
+        torch.nn.modules.flatten.Unflatten,
+        
+        # Upsampling
+        torch.nn.modules.upsampling.Upsample,
+        torch.nn.modules.upsampling.UpsamplingNearest2d,
+        torch.nn.modules.upsampling.UpsamplingBilinear2d,
+        
+        # Padding
+        torch.nn.modules.padding.ReflectionPad1d,
+        torch.nn.modules.padding.ReflectionPad2d,
+        torch.nn.modules.padding.ReflectionPad3d,
+        torch.nn.modules.padding.ReplicationPad1d,
+        torch.nn.modules.padding.ReplicationPad2d,
+        torch.nn.modules.padding.ReplicationPad3d,
+        torch.nn.modules.padding.ZeroPad2d,
+        torch.nn.modules.padding.ConstantPad1d,
+        torch.nn.modules.padding.ConstantPad2d,
+        torch.nn.modules.padding.ConstantPad3d,
         
         # Ultralytics modules
         DetectionModel,
