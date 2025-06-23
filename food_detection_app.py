@@ -17,6 +17,8 @@ import json
 from datetime import datetime
 import torch
 from ultralytics.nn.tasks import DetectionModel
+from torch.serialization import add_safe_globals
+import torch.nn.modules.container
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -33,11 +35,18 @@ FOOD_CLASSES = [
     "Pizza", "onion_rings", "pancakes", "spring_rolls", "tacos"
 ]
 
-# Fix for PyTorch 2.7+ weights_only issue
+# 🔧 Fix for PyTorch 2.6+ weights_only issue
+
 try:
-    torch.serialization.add_safe_globals([DetectionModel])
-except:
-    pass
+    add_safe_globals([
+        torch.nn.modules.container.Sequential,  # 🔧 Needed for model deserialization
+        DetectionModel
+    ])
+except Exception as e:
+    import traceback
+    traceback.print_exc()  # 🔧 Optional: for better error debugging
+    print(f"❌ Error loading YOLO model: {e}")
+    model = None
 
 # Load YOLO model
 try:
